@@ -1,9 +1,9 @@
-const delay = ms => new Promise(r => setTimeout(r, ms));
+const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const rateLimitMiddleware = (limiter) => {
+const verifyRatelimiter = (limiter) => {
   return async (req, res, next) => {
     try {
-    await delay(100 + (Math.random() * 200));
+      await delay(100 + Math.random() * 200);
 
       const key = req.user?.id || req.ip;
 
@@ -16,4 +16,4 @@ const rateLimitMiddleware = (limiter) => {
   };
 };
 
-export default rateLimitMiddleware;
+export default verifyRatelimiter;
