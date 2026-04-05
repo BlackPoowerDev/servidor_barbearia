@@ -2,9 +2,7 @@ import { RateLimiterRedis } from "rate-limiter-flexible";
 import Redis from "ioredis";
 import "dotenv/config";
 
-const client = new Redis(
-  "rediss://default:gQAAAAAAATUrAAIncDFkZDY1MDY0N2NmMmI0ZTYyYmJhMzFiNTYxNzUxNWIzZnAxNzkxNDc@amusing-gorilla-79147.upstash.io:6379",
-);
+const client = new Redis(process.env.REDIS_URL);
 await client.set("foo", "bar");
 
 // GLOBAL (API)
