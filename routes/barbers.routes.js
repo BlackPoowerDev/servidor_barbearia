@@ -1,10 +1,12 @@
+import { log } from "console";
 import {
-  createBarbers,
+  barberShop,
   getBarbers,
   deleteBarbers,
   getBarber,
   updateBarbers,
   loginBarber,
+  createBarbers,
 } from "../controllers/barbers.js";
 import authorize from "../middlewares/verifyAccess.js";
 import { verifyToken } from "../middlewares/verifyJwt.js";
@@ -44,7 +46,7 @@ routerBarbers.get(
 routerBarbers.get(
   "/",
   verifyRatelimiter(globalLimiter),
-  authorize(["barbeiros"]),
+  authorize(["administrador"]),
   async (req, res) => {
     try {
       const barbers = await getBarbers();
@@ -70,7 +72,6 @@ routerBarbers.get(
     const id = req.params.id;
     try {
       const barber = await getBarber(id);
-      // console.log(barber);
 
       return res.status(200).json({
         barber,
@@ -86,27 +87,15 @@ routerBarbers.get(
   },
 );
 
+// Cadastrar barbearia
 routerBarbers.post(
   "/create",
   verifyRatelimiter(registerLimiter),
   async (req, res) => {
     try {
-      const users = await createBarbers(req.body);
+      const barber = await barberShop(req.body);
 
-      if (users.status) {
-        console.log({
-          status: true,
-          access_token: users.access_token,
-        });
-
-        return res.status(200).json({
-          status: true,
-          id: users.id_barbearia,
-          access_token: users.access_token,
-        });
-      }
-
-      if (!users.status) {
+      if (!barber.status) {
         console.log({
           status: false,
           mensagem: "Erro ao cadastrar usuario",
@@ -117,31 +106,88 @@ routerBarbers.post(
           mensagem: "Erro ao cadastrar usuario",
         });
       }
+
+      console.log({
+        status: true,
+        access_token: barber.access_token,
+      });
+
+      return res.status(200).json({
+        status: true,
+        id: barber.id_barbearia,
+        access_token: barber.access_token,
+      });
     } catch (error) {
-      if (error.cause?.detail.includes("Chave (telefone)")) {
-        return res.status(400).json({
+      // if (error.cause?.detail.includes("Chave (telefone)")) {
+      return res.status(500).json({
+        status: false,
+        error: error.cause?.detail,
+      });
+      // }
+
+      // if (error.cause?.detail.includes("Chave (email)=")) {
+      //   return res.status(400).json({
+      //     status: false,
+      //     error: "Email já cadastrado",
+      //   });
+      // }
+
+      // if (error.cause?.column === "nome") {
+      //   return res.status(400).json({
+      //     status: false,
+      //     error: "Nome invalido",
+      //   });
+      // }
+
+      // return res.status(500).json({
+      //   status: false,
+      //   error: "error interno no servidor",
+      // });
+    }
+  },
+);
+
+routerBarbers.post(
+  "/create/barber/:id_barbearia",
+  verifyRatelimiter(registerLimiter),
+  verifyToken,
+  async (req, res) => {
+    // console.log(req);
+
+    try {
+      const id_barbearia = req.params.id_barbearia;
+
+      if (!id_barbearia)
+        return {
           status: false,
-          error: "Telefone já cadastrado",
+          mensagem: "ID da barbearia não informado",
+        };
+
+      const barber = await createBarbers(id_barbearia, req.body);
+
+      if (barber.rowCount) {
+        return res.status(200).json({
+          status: true,
+          id_barbearia: id_barbearia,
         });
       }
 
-      if (error.cause?.detail.includes("Chave (email)=")) {
+      if (barber?.cause.code === "23505") {
         return res.status(400).json({
           status: false,
-          error: "Email já cadastrado",
-        });
-      }
-
-      if (error.cause?.column === "nome") {
-        return res.status(400).json({
-          status: false,
-          error: "Nome invalido",
+          mensagem: "Erro ao cadastrar barbeiro (Telefone já cadastrado)",
         });
       }
 
       return res.status(500).json({
         status: false,
-        error: "error interno no servidor",
+        mensagem: "Erro interno do servidor)",
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        status: false,
+        mensagem: "Erro interno do servidor)",
       });
     }
   },
@@ -198,23 +244,10 @@ routerBarbers.patch(
 // ROTA DE LOGIN
 routerBarbers.post(
   "/login",
-  verifyRatelimiter(globalLimiter),
+  verifyRatelimiter(loginLimiter),
   async (req, res) => {
     try {
       const login = await loginBarber(req.body);
-
-      if (login.status) {
-        console.log({
-          status: true,
-          access_token: login.access_token,
-        });
-
-        return res.status(200).json({
-          status: true,
-          id: login.id_barbearia,
-          access_token: login.access_token,
-        });
-      }
 
       if (!login.status) {
         console.log({
@@ -227,6 +260,17 @@ routerBarbers.post(
           mensagem: "Credenciais invalidas!",
         });
       }
+
+      console.log({
+        status: true,
+        access_token: login.access_token,
+      });
+
+      return res.status(200).json({
+        status: true,
+        id: login.id_barbearia,
+        access_token: login.access_token,
+      });
     } catch (error) {
       console.error(error);
 

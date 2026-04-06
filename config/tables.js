@@ -4,6 +4,8 @@ import {
   varchar,
   timestamp,
   boolean,
+  time,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 export const login_barbearia = pgTable("barbearias", {
@@ -66,21 +68,22 @@ export const tabela_usuarios = pgTable("usuarios", {
 export const tabela_barbeiros = pgTable("barbeiros", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
 
-  id_barbearia: varchar("id_barbearia", { length: 255 }).notNull(),
+  id_barbearia: uuid("id_barbearia", { length: 255 }).notNull(),
 
-  email: varchar("email", { length: 255 }).notNull().unique(),
-
-  senha: varchar("senha", { length: 255 }).notNull(),
+  id_barbeiro: uuid("id_barbeiro", { length: 255 }).notNull(),
 
   telefone: varchar("telefone", { length: 20 }).notNull().unique(),
 
-  foto_perfil: varchar("foto_perfil", { length: 255 }),
+  nome: varchar("nome", { length: 50 }).notNull(),
 
-  tipo: varchar("tipo", { length: 20 }).default("cliente"),
+  especialidades: varchar("especialidades", { length: 255 }).notNull(),
 
-  data_cadastro: timestamp("data_cadastro").defaultNow(),
+  horario_inicio: time("horario_inicio").notNull(),
+
+  horario_fim: time("horario_fim").notNull(),
 
   bloqueado: boolean("bloqueado").default(false),
+  data_cadastro: timestamp("data_cadastro").defaultNow(),
 });
 
 export const tabela_barbearia = pgTable("barbearias", {
@@ -159,22 +162,22 @@ export const tabela_barbearia_fotos = pgTable("barbearia_fotos", {
   url_foto: varchar("url_foto", { length: 255 }).notNull(),
 });
 
-export const agenda_slots = pgTable("agenda_slots", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+// export const agenda_slots = pgTable("agenda_slots", {
+//   id: integer().primaryKey().generatedAlwaysAsIdentity(),
 
-  id_slot: varchar("id_slot").notNull().unique(),
+//   id_slot: varchar("id_slot").notNull().unique(),
 
-  id_barbearia: varchar("id_barbearia")
-    .notNull()
-    .references(() => barbearias.id_barbearia),
+//   id_barbearia: varchar("id_barbearia")
+//     .notNull()
+//     .references(() => barbearias.id_barbearia),
 
-  id_barbeiro: varchar("id_barbeiro")
-    .notNull()
-    .references(() => barbeiros.id_barbeiro),
+//   id_barbeiro: varchar("id_barbeiro")
+//     .notNull()
+//     .references(() => barbeiros.id_barbeiro),
 
-  horario: timestamp("horario").notNull(),
+//   horario: timestamp("horario").notNull(),
 
-  disponivel: boolean("disponivel").default(true),
+//   disponivel: boolean("disponivel").default(true),
 
-  data_criacao: timestamp("data_criacao").defaultNow(),
-});
+//   data_criacao: timestamp("data_criacao").defaultNow(),
+// });

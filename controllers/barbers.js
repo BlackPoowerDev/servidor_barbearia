@@ -22,34 +22,32 @@ export async function validBarbers() {
   }
 }
 
-export async function createBarbers(dados) {
+export async function barberShop(dados) {
   const id_barbearia = uuidv6();
 
   const result = await db.insert(tabela_barbearia).values({
     id_barbearia: id_barbearia,
-    email: dados.email ? dados.email : "",
-    nome: dados.nome ? dados.nome : "",
+    email: dados.email,
+    nome: dados.nome,
     senha: await bcrypt.hash(dados.senha, 10),
     // nome_barbearia: dados.nome_barbearia ? dados.nome_barbearia : '',
     // foto_logo: dados.foto_perfil ? await uploadImage(path.join(__dirname, dados.foto_logo)) : '',
     // endereco: dados.endereco ? dados.endereco : '',
-    telefone: dados.telefone ? dados.telefone : "",
+    telefone: dados.telefone,
     // descricao: dados.descricao ? dados.descricao : '',
     // avaliacao_media: dados.avaliacao_media ? dados.avaliacao_media : 0,
     data_cadastro: new Date(),
   });
 
   if (result.rowCount > 0) {
-    const data = {
-      id_barbearia: id_barbearia,
-      nome: dados.nome ? dados.nome : "",
-      tipo: "barbeiro",
-    };
-
     return {
       status: true,
       id_barbearia: id_barbearia,
-      access_token: jwtUsers(data),
+      access_token: jwtUsers({
+        id_barbearia: id_barbearia,
+        nome: dados.nome ? dados.nome : "",
+        tipo: "barbeiro",
+      }),
     };
   }
 
@@ -57,6 +55,23 @@ export async function createBarbers(dados) {
     status: false,
     mensagem: result,
   };
+}
+export async function createBarbers(id_barbearia, dados) {
+  const id_barbeiro = uuidv6();
+
+  try {
+    return await db.insert(tabela_barbeiros).values({
+      id_barbearia: id_barbearia,
+      id_barbeiro: id_barbeiro,
+      telefone: dados.telefone,
+      nome: dados.nome,
+      especialidades: dados.especialidades,
+      horario_inicio: dados.horario_inicio,
+      horario_fim: dados.horario_fim,
+    });
+  } catch (error) {
+    return error;
+  }
 }
 export async function getBarber(id) {
   return await db
